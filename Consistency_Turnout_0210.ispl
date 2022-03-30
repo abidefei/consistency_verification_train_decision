@@ -18,13 +18,13 @@ Agent Environment
     
     Evolution:
     	Signal_state= Green if (Operation_Order=Going_to_line1) and (Block1.Action=show_free) and
-    	            (Sensor1.Action=show_normal and Sensor2.Action=show_normal and Sensor3.Action=show_normal and Sensor4.Action=show_normal);
+    	            (Sensor1.Action=show_normal and Sensor2.Action=show_normal);   	
     	Signal_state= Green if (Operation_Order=Going_to_line3) and (Block3.Action=show_free) and
-    	       (Sensor1.Action=show_reverse and Sensor2.Action=show_reverse and Sensor3.Action=show_reverse and Sensor4.Action=show_reverse);
+    	       (Sensor1.Action=show_reverse and Sensor2.Action=show_reverse);  		
     	Signal_state= Red if (Operation_Order=Going_to_line3) and 
-    	             (Sensor1.Action=show_normal or Sensor2.Action=show_normal or Sensor3.Action=show_normal or Sensor4.Action=show_normal or Block3.Action=show_busy);
+    	             (Sensor1.Action=show_normal or Sensor2.Action=show_normal or Block3.Action=show_busy);   
     	Signal_state= Red if (Operation_Order=Going_to_line1) and 
-    	             (Sensor1.Action=show_reverse or Sensor2.Action=show_reverse or Sensor3.Action=show_reverse or Sensor4.Action=show_reverse or Block1.Action=show_busy);
+    	             (Sensor1.Action=show_reverse or Sensor2.Action=show_reverse or Block1.Action=show_busy);  
     	Signal_state=Red if Operation_Order=none or Action=none;
     	Operation_state=Operating if Action=keep_going;
     	Operation_state=Operate_end if Operation_state=Operating;	
@@ -105,48 +105,6 @@ Agent Sensor2
 
 end Agent
 
-Agent Sensor3
-  Vars:
-    value: boolean;
-  end Vars
-  Actions = {none,show_normal,show_reverse};
-
-	Protocol:
-		value=true:{show_normal};
-		value=false:{show_reverse};
-    	Other : {none};
-    end Protocol
-
-    Evolution:
-		value=true  if Turn_out.Action=positive_rotation;
-		value=false if Turn_out.Action=reverse_rotation;
-    	value=true  if value=true;
-    	value=false if value=false;
-    end Evolution
-
-end Agent
-
-Agent Sensor4
-  Vars:
-    value: boolean;
-  end Vars
-  Actions = {none,show_normal,show_reverse};
-
-	Protocol:
-		value=true:{show_normal};
-		value=false:{show_reverse};
-    	Other : {none};
-    end Protocol
-
-    Evolution:
-		value=true  if Turn_out.Action=positive_rotation;
-		value=false if Turn_out.Action=reverse_rotation;
-    	value=true  if value=true;
-    	value=false if value=false;
-    end Evolution
-
-end Agent
-
 Agent Block1
     --Lobsvars = {Operation_Order};
     Vars:
@@ -196,27 +154,21 @@ Evaluation
   Emergency_stop        if Environment.Signal_state= Red;
   Sensor1_true          if Sensor1.value=true;
   Sensor2_true          if Sensor2.value=true;
-  Sensor3_true          if Sensor3.value=true;
-  Sensor4_true          if Sensor4.value=true;
-
   Sensor1_false         if Sensor1.value=false;
   Sensor2_false         if Sensor2.value=false;
-  Sensor3_false         if Sensor3.value=false;
-  Sensor4_false         if Sensor4.value=false;
-
 end Evaluation
 
 -- Operation_now          if Environment.Operation_Order=Going_to_line3 or Environment.Operation_Order=Going_to_line1;
 InitStates
-	((Turn_out.state = normal) and (Environment.Operation_Order = Going_to_line3) and (Sensor1.value = true) and (Sensor2.value = true) and (Sensor3.value = true) and (Sensor4.value = true)) or
-	((Turn_out.state = reverse) and (Environment.Operation_Order = Going_to_line1) and (Sensor1.value = false) and (Sensor2.value = false) and (Sensor3.value = false) and (Sensor4.value = false))
+	((Turn_out.state = reverse) and (Environment.Operation_Order = Going_to_line1) and (Sensor1.value = false) and (Sensor2.value = false)) or
+	((Turn_out.state = normal) and (Environment.Operation_Order = Going_to_line3) and (Sensor1.value = true) and (Sensor2.value =true ))
 	 and (Environment.Signal_state = Red);
 end InitStates
 
 Formulae
 	--AG Emergency_stop;
 	--AG EX Emergency_stop;
-	AG (EX(Sensor1_true) and EX(Sensor2_true) and EX(Sensor3_true) and EX(Sensor4_true)) or (EX(Sensor1_false) and EX(Sensor2_false) and EX(Sensor3_false) and EX(Sensor4_false));
+	AG (EX(Sensor1_true) and EX(Sensor2_true)) or (EX(Sensor1_false) and EX(Sensor1_false));
 	--AG (Operation_now) -> ((Sensor1_true and EX(Sensor1_true) ) or (Sensor2_true and EX(Sensor2_true))); -- is false
-	AG (Keeping_state) -> ((Sensor1_true and EX(Sensor1_true) ) and (Sensor2_true and EX(Sensor2_true)) and (Sensor3_true and EX(Sensor3_true)) and (Sensor4_true and EX(Sensor4_true)));
+	AG (Keeping_state) -> ((Sensor1_true and EX(Sensor1_true) ) and (Sensor2_true and EX(Sensor2_true)));
 end Formulae
